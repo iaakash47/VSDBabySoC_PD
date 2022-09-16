@@ -253,10 +253,8 @@ set_max_delay 10 -from dac/OUT -to [get_ports OUT]
 ### Design Flow
 
 ![22](https://user-images.githubusercontent.com/88897605/190555704-8eda471b-48bf-4177-a185-ae32027f6c8d.PNG)
-
-
-If the design contains black boxes or the netlist is dirty, use the read_mw_verilog command in place of import_designs. 
-Also include adding of power pads (VSS,VDD) and insertion of pad fillers.
+The physical design is the process of transforming a circuit description into the physical layout, which describes the position of cells and routes for the interconnections between them.
+The main concern is the physical design of VLSI-chips is to find a layout with minimal area, further the total wire length has to be minimized. For some critical nets there are hard limitations for the maximal wire length.
 
 
 ### Hierarchical Design Planning Flow
