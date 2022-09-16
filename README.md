@@ -253,6 +253,7 @@ set_max_delay 10 -from dac/OUT -to [get_ports OUT]
 ### Design Flow
 
 ![22](https://user-images.githubusercontent.com/88897605/190555704-8eda471b-48bf-4177-a185-ae32027f6c8d.PNG)
+
 The physical design is the process of transforming a circuit description into the physical layout, which describes the position of cells and routes for the interconnections between them.
 The main concern is the physical design of VLSI-chips is to find a layout with minimal area, further the total wire length has to be minimized. For some critical nets there are hard limitations for the maximal wire length.
 
@@ -570,12 +571,11 @@ The first step is to verify a set of reports, which have information about timin
 
 ### Place&Route
 
-Place&Route is the backend stage that converts the gate level netlist produced during synthesis into a physical design. Although the name denotes for two phases, the Place&Route stage can be divided in three steps: Placement, Clock Tree Synthesis (CTS) and Routing.
-Placement involves placing all macros and cells into a certain and predefined space. It is done in two phases. The first one, called Coarse Placement, places the standard cells in order to optimize timing and/or congestion but not taking in account overlapping prevention. The
-second phase, which is named Legalize, eliminates overlap problems by placing the overlapping cells in the closest available space.Clock tree synthesis is the creation of a balanced buffer tree in all high fanout clock nets to avoid violations regarding clock skew, max transition time, capacitance and setup and hold times.
+Place&Route is the backend stage that converts the gate level netlist produced during synthesis into a physical design. Although the name denotes for two phases, the Place&Route stage can be divided in three steps: Placement, Clock Tree Synthesis (CTS) and Routing.Placement involves placing all macros and cells into a certain and predefined space. It is done in two phases. The first one, called Coarse Placement, places the standard cells in order to optimize timing and/or congestion but not taking in account overlapping prevention. The second phase, which is named Legalize, eliminates overlap problems by placing the overlapping cells in the closest available space.Clock tree synthesis is the creation of a balanced buffer tree in all high fanout clock nets to avoid violations regarding clock skew, max transition time, capacitance and setup and hold times.
+
 Routing is responsible for designing all the wires needed to connect all cells of the circuit, while following the rules of the manufacture process. The connections between cells are done using metal layers placed one over the other and connected through vias. Routing has a negative impact on timing, transition and capacitance slacks. It introduces RC parasitic effects that cause delay, signal noise and increase IR drop. To minimize the parasitic impact, clock signals should be routed first and in middle metal layers, away from the noisy power supplies of the standard cells.
-Routing is done in three phases: Global Routing (design routing nets), Track Assignment (assign nets to specific metal layers), and Search&Repair (fix violations).
-Using Synopsys IC Compiler the design is, first, placed, followed by the clock tree synthesis(CTS) and, finally the routing of every cell. The result is a post-layout netlist and a GDS II file.
+
+Routing is done in three phases: Global Routing (design routing nets), Track Assignment (assign nets to specific metal layers), and Search&Repair (fix violations).Using Synopsys IC Compiler the design is, first, placed, followed by the clock tree synthesis(CTS) and, finally the routing of every cell. The result is a post-layout netlist and a GDS II file.
 ![placement](https://user-images.githubusercontent.com/88897605/190554640-d43e438c-3b8f-4667-bd00-81d803042de4.jpeg)
 
 * Placement Flowchart
