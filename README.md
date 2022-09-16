@@ -250,6 +250,246 @@ set_input_delay -min 1 -clock [get_clocks MYCLK] [get_ports ENb_CP];
 #set_min_delay -max 10 -clock[get_clk myclk] [get_ports OUT]
 set_max_delay 10 -from dac/OUT -to [get_ports OUT]
 ```
+### Design Flow
+
+![icc design planning flow](https://user-images.githubusercontent.com/83152452/190413963-65903c08-7ec9-4411-ace0-0ae4febb736e.png)
+
+If the design contains black boxes or the netlist is dirty, use the read_mw_verilog command in place of import_designs. 
+Also include adding of power pads (VSS,VDD) and insertion of pad fillers.
+
+
+### Hierarchical Design Planning Flow
+
+The hierarchical design planning flow provides an efficient approach for managing large designs. By dividing the design into multiple blocks, different design teams can work 
+on different blocks in parallel, from RTL through physical implementation. Working with smaller blocks and using multiply instantiated blocks can reduce overall runtime.
+Consider using a hierarchical methodology in the following scenarios:
+
+• The design is large, complex, and requires excessive computing resources to process the design in a flat form.
+
+• You anticipate problems that might delay the delivery of some blocks and might cause the schedule to slip. A robust hierarchical methodology accommodates late design changes to individual blocks while maintaining minimal disruption to the design 
+schedule.
+
+• The design contains hard intellectual property (IP) macros such as RAMs, or the design was previously implemented and can be converted and reused.
+
+After the initial design netlist is generated in Design Compiler topographical mode, you can use the hierarchical methodology for design planning in the IC Compiler II tool. Design 
+planning is performed during the first stage of the hierarchical flow to partition the design into blocks, generate hierarchical physical design constraints, and allocate top-level timing 
+budgets to lower-level physical blocks. The flow to implement a hierarchical design plan is shown in Figure below :
+
+![hierarchical design flow](https://user-images.githubusercontent.com/83152452/190413869-a52aec73-5368-4b13-8660-158f465308bb.png)
+
+
+#### Design Partitioning
+
+After reading in the netlist and initializing the floorplan, you can determine the physical partitioning for your hierarchical design project. When deciding on the physical partitions, 
+consider the following factors:
+
+• Size
+Partition your design with blocks of similar size. Small blocks should be grouped and large blocks should be divided when appropriate.
+
+• Function
+Partition your design using its functional units for verification and simulation purposes. Consider top-level connectivity and minimal block pin counts to avoid congestion and 
+timing issues.
+
+• Floorplan style
+Different floorplan styles require different physical hierarchies to support them. An abutted floorplan style has no top-level logic and a channeled floorplan has either a 
+small or large amount of top-level logic.
+
+• Common hierarchy with Design Compiler topographical mode
+To exchange SCANDEF information at the block level and the top level, the physical hierarchy used in Design Compiler topographical mode must also be used in the IC 
+Compiler II tool.
+
+#### Deciding on the Physical Partitions
+
+The IC Compiler II tool provides the following features to help you decide on the physical 
+partitions:
+
+• Using the Hierarchy Browser
+You can use the hierarchy browser to navigate through the design hierarchy, to examine the logic design hierarchy, and to display information about the hierarchical 
+cells and logic blocks in your design. You can select the hierarchical cells, leaf cells, or other objects in layout or schematic views. The viewer provides a tree browser to help 
+in understanding the design hierarchy, and information about the blocks in the design such as the utilization, number of standard cells, and so on.
+
+• Committing Blocks
+After you decide on an initial partitioning, you can commit the blocks. Blocks are committed early in the floorplanning flow, and abstract views are used to generate an 
+initial floorplan and timing budgets for the design.
+
+
+## Design Planning at Multiple Levels of Physical Hierarchy
+
+Large, complex SoC designs require hierarchical layout methodologies capable of managing multiple levels of physical hierarchy at the same time. Many traditional design 
+tools -- including physical planning, place and route, and other tools -- are limited to two levels of physical hierarchy: top and block. The IC Compiler II tool provides 
+comprehensive support for designs with multiple levels of physical hierarchy, resulting in shorter time to results, better QoR, and higher productivity for physical design teams. Use 
+the set_editability command to enable or disable specific blocks and design levels of hierarchy for planning.
+
+![1](https://user-images.githubusercontent.com/83152452/190419795-77cbbdb9-d6a8-4678-a9c1-83d5fdb638f2.png)
+
+The IC Compiler II tool provides support in several areas to accommodate designs with multiple levels of physical hierarchy:
+
+### Data Model
+
+The data model in the IC Compiler II tool has built-in support for multiple levels of physical hierarchy. Native physical hierarchy support provides significant advantages for multilevel physical hierarchy planning and implementation. 
+When performing block shaping, placement, routing, timing, and other steps, the tool can quickly access the specific data relative to physical hierarchy needed to perform the function.
+
+### Block Shaping
+
+In a complex design with multiple levels of physical hierarchy, the block shaper needs to know the target area for each sub-chip, the aspect ratio constraints required by hard 
+macro children, and any interconnect that exists at the sibling-to-sibling, parent-to-child, and child-to parent interfaces. For multi-voltage designs, the block shaper needs the target 
+locations for voltage areas. These requirements add additional constraints for the shaper to manage. For multi-level physical hierarchy planning, block shaping constraints on lower 
+level sub-chips must be propagated to the top level; these constraints take the form of block shaping constraints on parent sub-chips. To improve performance, the shaper does 
+not need the full netlist content that exists within each sub-chip or block.
+
+The IC Compiler II data model provides block shaping with the specific data required to accomplish these goals. For multi-voltage designs, the tool reads UPF and saves the 
+power intent at the sub-chip level. The tool retrieves data from the data model to calculate targets based on natural design utilization or retrieves user-defined attributes that specify 
+design targets.
+
+### Cell and Macro Placement
+
+After block shaping, the cell and macro placement function sees a global view of the interconnect paths and data flow at the physical hierarchy boundaries and connectivity 
+to macro cells. With this information, the tool places macros for each sub-chip at each level of hierarchy. Because the tool understands the relative location requirements of 
+interconnect paths at the boundaries at all levels, sufficient resources at the adjacent subchip edges are reserved to accommodate interconnect paths. The placer anticipates the 
+needs of hierarchical pin placement and places macros where interconnect paths do not require significant buffering to drive signals across macros.
+
+The placer models the external environment at the boundaries of both child and parent sub-chips by considering sub-chip shapes, locations, and the global macro placements. 
+Using this information, the placer creates cell placement jobs for each sub-chip at each level of hierarchy. By delegating sub-chip placement across multiple processes, the tool 
+minimizes turnaround time while maximizing the use of compute resources.
+
+### Power Planning
+
+For power planning, the IC Compiler II tool provides an innovative pattern-based methodology. Patterns describing construction rules -- widths, layers, and pitches required 
+to form rings and meshes -- are applied to different areas of the floorplan such as voltage areas, groups of macros, and so on. Strategies associate single patterns or multiple 
+patterns with areas. Given these strategy definitions, the IC Compiler II tool characterizes the power plan and automatically generates definitions of strategies for sub-chips at 
+all levels. A complete power plan is generated in a distributed manner. Because the characterized strategies are written in terms of objects at each sub-chip level, power plans 
+can be easily re-created to accommodate floorplan changes at any level.
+
+![2](https://user-images.githubusercontent.com/83152452/190419827-11696e7a-e541-4213-83b0-96689d102fcb.png)
+
+
+### Pin Placement
+
+With block shapes formed, macros placed, and power routed, pin placement retrieves interface data from all levels and invokes the global router to determine the optimal 
+location to place hierarchical pins. The global router recognizes physical boundaries at all levels to ensure efficient use of resources at hierarchical pin interfaces. Pins are aligned 
+across multiple levels when possible. Like all IC Compiler II operations, the global router comprehends multiply instantiated blocks (MIBs) and creates routes compliant with each 
+MIB instantiation. To place pins for MIBs, the pin placement algorithm determines the best pin placement that works for all instances, ensuring that the pin placement on each 
+instance is identical. Additionally, pin placement creates feedthroughs for all sub-chips, including MIBs, throughout the hierarchy. The global router creates feedthroughs across 
+MIBs, determines feedthrough reuse, and connects unused feedthroughs to power or ground as required.
+
+### Timing Budgeting
+
+The IC Compiler II tool estimates the timing at hierarchical interfaces and creates timing budgets for sub-chips. The timing budgeter in IC Compiler II creates timing constraints for
+all child interface pins within the full chip, the parent and child interfaces for mid-level subchips and the primary pins at lowest level sub-chips. The entire design can proceed with 
+placement and optimization concurrently and in a distributed manner.
+
+To examine critical timing paths in the layout or perform other design planning tasks, you can interactively view, analyze, and manually edit any level of the design in a fullchip context. You can choose to view top-level only or multiple levels of hierarchy. 
+When viewing multiple levels, interactive routing is performed as if the design is flat. At completion, routes are pushed into children and hierarchical pins are automatically added.
+
+
+## Design Validation During Design Planning
+
+As you proceed through the design planning flow, you can use the check_design command to validate your design and ensure that it is ready for the next design stage. 
+The command performs one or more checks on your design, based on the arguments you specify. To use the check_design command to check your design, specify the command 
+and the -checks option followed by one or more check keywords.
+
+The following example performs the dp_pre_floorplan checks:
+```
+icc2_shell> check_design -checks {dp_pre_floorplan}
+```
+
+The list of keywords related to design planning for the -checks option is shown in the following list.
+
+```
+• dp_pre_floorplan
+◦ Checks that the technology file information is correct
+◦ Checks that the layer directions are set
+◦ Checks that the design contains both horizontal and vertical layers
+```
+
+```
+• dp_pre_create_placement_abstract
+◦ Checks that the constraint mapping file specifies a UPF file for all blocks
+◦ Checks that the Verilog files are in place for the outline view for blocks
+```
+
+```
+• dp_pre_block_shaping
+◦ Checks that the target utilization or area exists for all black boxes
+◦ Checks that there is at least one block or voltage area to shape
+◦ Checks that the core area and block boundaries are valid
+◦ Checks that the block grid is set if the design contains multiply instantiated blocks (MIBs)
+◦ Performs the multivoltage checks related to the shape_blocks command
+```
+
+Figure : Fast interactive analysis through multiple-levels of physical hierarchy and MIB
+
+![MIB](https://user-images.githubusercontent.com/83152452/190420541-354d7763-eac1-4885-bc54-3f9f0febb176.png)
+
+```
+• dp_pre_macro_placement
+◦ Checks that block shapes do not overlap
+◦ Checks that blocks and voltage areas are inside the parent boundaries
+◦ Performs basic placement constraint checking, such as overlapping or out-of bounds relative locations constraints, macro cell width and height that are an even multiple of the FinFET grid, and macro cell orientation
+◦ Checks that each block has a logical hierarchy
+◦ Checks block, voltage area, exclusive movebound, and hard movebound utilization
+◦ Performs the multivoltage checks related to the create_placement command
+```
+
+```
+• dp_pre_power_insertion
+◦ Checks that the preferred routing direction is set for the routing layers
+◦ Checks that the tracks exist for routing layers
+```
+
+Figure : Intelligent and accurate analysis for congestion and power
+
+![power analysis](https://user-images.githubusercontent.com/83152452/190421807-a267b4d8-987f-4a86-8fdf-230361ad0ba2.png)
+
+```
+• dp_pre_pin_placement
+◦ Performs pin constraint checks, including topological constraints, individual constraints, constraints propagated from individual pins, bundle pin constraints, block pin constraints, size-related constraints, pin guide and pin blockage constraints, routing guide constraints, and routing blockage constraints
+◦ Checks that the routing direction of each layer in a topological constraint is consistent with the block edge constraints
+◦ Checks for consistent edge directions in topological constraint pairs
+◦ Checks for off-edge pins that are part of a feedthrough constraint
+◦ Checks for possible overlaps with existing internal block objects such as route blockages, pin blockages, fixed pins, preroutes, and so on
+◦ Runs the checks performed by the check_mib_for_pin_placement command
+```
+
+Figure : Pipeline register placement enables superior QoR for designs with complex buses
+
+![register placements](https://user-images.githubusercontent.com/83152452/190421795-d1c68df0-56e5-4aae-ac0a-7b1b28bb3bbb.png)
+
+```
+• dp_pre_push_down
+◦ Runs the checks performed by the check_mib_alignment command
+```
+
+```
+• dp_pre_create_timing_abstract
+◦ Checks that the constraint mapping file specifies SDC files for all blocks
+```
+
+```
+• dp_pre_timing_estimation (timing abstract checks)
+◦ Checks that the top and block levels have defined modes and corners
+◦ Checks that the top-level modes and corners have corresponding block-level modes and corners
+◦ Checks that the top level contains at least one clock, at least one scenario using a nonestimated corner, and the corner has parasitic parameters
+```
+
+```
+• dp_pre_timing_estimation (placement abstract checks)
+◦ Performs the pre_create_timing_abstract checks
+◦ Checks whether placement abstracts exist
+```
+
+```
+• dp_pre_budgeting
+◦ Checks that the estimated_corner is available
+◦ Performs the same checks as dp_pre_timing_estimation
+```
+
+```
+• dp_floorplan_rules
+◦ Checks the segment parity rule
+◦ Checks the macro spacing rule
+◦ Runs the checks performed by the check_finfet_grid command
+```
 
 
 # Getting Started with VSDBabySoC
