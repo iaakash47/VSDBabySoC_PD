@@ -329,7 +329,7 @@ The IC Compiler II tool provides support in several areas to accommodate designs
 The data model in the IC Compiler II tool has built-in support for multiple levels of physical hierarchy. Native physical hierarchy support provides significant advantages for multilevel physical hierarchy planning and implementation. 
 When performing block shaping, placement, routing, timing, and other steps, the tool can quickly access the specific data relative to physical hierarchy needed to perform the function.
 
-### Block Shaping
+### Floor Planning
 
 In a complex design with multiple levels of physical hierarchy, the block shaper needs to know the target area for each sub-chip, the aspect ratio constraints required by hard 
 macro children, and any interconnect that exists at the sibling-to-sibling, parent-to-child, and child-to parent interfaces. For multi-voltage designs, the block shaper needs the target 
@@ -340,6 +340,13 @@ not need the full netlist content that exists within each sub-chip or block.
 The IC Compiler II data model provides block shaping with the specific data required to accomplish these goals. For multi-voltage designs, the tool reads UPF and saves the 
 power intent at the sub-chip level. The tool retrieves data from the data model to calculate targets based on natural design utilization or retrieves user-defined attributes that specify 
 design targets.
+
+![floorplan](https://user-images.githubusercontent.com/88897605/190554376-fab44ab0-4c66-4a5a-9e48-58ef5e459a5f.jpg)
+
+* Flowplan Flowchart
+![floorplanflow](https://user-images.githubusercontent.com/88897605/190554412-e9b825cd-1c7e-4678-a5d0-a92e4a3104fc.png)
+
+
 
 ### Cell and Macro Placement
 
@@ -352,6 +359,12 @@ The placer models the external environment at the boundaries of both child and p
 Using this information, the placer creates cell placement jobs for each sub-chip at each level of hierarchy. By delegating sub-chip placement across multiple processes, the tool 
 minimizes turnaround time while maximizing the use of compute resources.
 
+
+![macroplacement](https://user-images.githubusercontent.com/88897605/190554511-d8ef9d4d-7dba-4148-b69c-491453d4b714.jpg)
+![macrospacing](https://user-images.githubusercontent.com/88897605/190554514-6ee22890-e3be-4855-89e6-6cf7d3110079.jpg)
+
+
+
 ### Power Planning
 
 For power planning, the IC Compiler II tool provides an innovative pattern-based methodology. Patterns describing construction rules -- widths, layers, and pitches required 
@@ -360,7 +373,8 @@ patterns with areas. Given these strategy definitions, the IC Compiler II tool c
 all levels. A complete power plan is generated in a distributed manner. Because the characterized strategies are written in terms of objects at each sub-chip level, power plans 
 can be easily re-created to accommodate floorplan changes at any level.
 
-![2](https://user-images.githubusercontent.com/83152452/190419827-11696e7a-e541-4213-83b0-96689d102fcb.png)
+![powerplan](https://user-images.githubusercontent.com/88897605/190554190-bd01b503-7799-48b2-ab5e-2ad0ae931a7c.png)
+
 
 
 ### Pin Placement
@@ -563,6 +577,16 @@ second phase, which is named Legalize, eliminates overlap problems by placing th
 Routing is responsible for designing all the wires needed to connect all cells of the circuit, while following the rules of the manufacture process. The connections between cells are done using metal layers placed one over the other and connected through vias. Routing has a negative impact on timing, transition and capacitance slacks. It introduces RC parasitic effects that cause delay, signal noise and increase IR drop. To minimize the parasitic impact, clock signals should be routed first and in middle metal layers, away from the noisy power supplies of the standard cells.
 Routing is done in three phases: Global Routing (design routing nets), Track Assignment (assign nets to specific metal layers), and Search&Repair (fix violations).
 Using Synopsys IC Compiler the design is, first, placed, followed by the clock tree synthesis(CTS) and, finally the routing of every cell. The result is a post-layout netlist and a GDS II file.
+![placement](https://user-images.githubusercontent.com/88897605/190554640-d43e438c-3b8f-4667-bd00-81d803042de4.jpeg)
+
+* Placement Flowchart
+![placementsteps](https://user-images.githubusercontent.com/88897605/190554642-3521dcc1-8787-4dda-ba3e-08baf152f951.jpeg)
+
+* Placement Design Flow
+![placementsteps1](https://user-images.githubusercontent.com/88897605/190554645-3ca98eaa-40aa-48ee-8521-0eaf9cc8ad3c.jpeg)
+
+* Placed Cells
+![placment](https://user-images.githubusercontent.com/88897605/190554646-6fe12b7d-8d89-4abd-a70b-2cbeab6014fc.png)
 
 
 ### The steps taken to perform Place&Route using ICC are as follows:
@@ -653,6 +677,9 @@ Star RC is the Synopsys tool capable of performing parasitic extraction. It take
 STA is a method to obtain accurate timing information without the need to simulate thecircuit. It allows detecting setup and hold times violations, as well as skew and slow paths that limit the operation frequency.Synopsys PrimeTime allows running STA over a physical design, for each corner. Taking as inputs the post-layout netlist and parasitic and standard cells information it outputs a series of
 reports, which give the possibility to detect timing violations. As mentioned before these timing violations can be fixed by inserting buffers or resizing cells. With PrimeTime it is possible to identify where to perform these modifications and test them. When a list of new buffers and resized cells is available, the modifications need to be done back in ICC, followed by another parasitic extraction and STA to check the results. This process is done iteratively until no violations are reported.
 
+![staio](https://user-images.githubusercontent.com/88897605/190554896-a6aab4a0-e116-4b86-a329-a4d9ebbe8128.jpeg)
+
+
 ### Post-layout Verification
 Once again, formality should be run to check the logical equivalence of the post-layout netlist with the RTL description.The huge number of transistors in a circuit can make the voltage level drop below a defined margin that ensures that the circuit works properly. IR Drop analysis allows checking the power grid to ensure that it is strong enough to hold that minimum voltage level. Synopsys PrimeRail
 is the tool that outputs IR-drop and EM analyses reports.
@@ -664,19 +691,19 @@ width; Antenna Effect; Metal fill density.
 LVS (Layout Versus Schematic) checks if the physical circuit corresponds to the original circuit
 schematic.
 
-
+```
 set target_library [list /home/skandha/KUNAL/icc2_workshop_collaterals/nangate_typical.db]
 set link_library [list /home/skandha/KUNAL/icc2_workshop_collaterals/nangate_typical.db] 
 set symbol_library ""
 
-read_file -format verilog {/home/devipriya/rvmyth_45nm/src/module/vsdbabysoc.v}
-read_verilog /home/devipriya/rvmyth_45nm/src/module/rvmyth.v
-read_verilog /home/devipriya/rvmyth_45nm/src/module/clk_gate.v
+read_file -format verilog {/home/aakash/rvmyth_45nm/src/module/vsdbabysoc.v}
+read_verilog /home/aakash/rvmyth_45nm/src/module/rvmyth.v
+read_verilog /home/aakash/rvmyth_45nm/src/module/clk_gate.v
 
-read_lib -lib /home/devipriya/rvmyth_45nm/src/module/nangate45nm.lib
-read_lib -lib /home/devipriya/rvmyth_45nm/src/module/nangate_typical.lib
+read_lib -lib /home/aakash/rvmyth_45nm/src/module/nangate45nm.lib
+read_lib -lib /home/aakash/rvmyth_45nm/src/module/nangate_typical.lib
 
-analyze -library WORK -format verilog {/home/devipriya/rvmyth_45nm/src/module/vsdbabysoc.v}
+analyze -library WORK -format verilog {/home/aakash/rvmyth_45nm/src/module/vsdbabysoc.v}
 elaborate vsdbabysoc -architecture verilog -library WORK
 analyze {}
 
@@ -709,11 +736,11 @@ check_design
 compile_ultra
 
 file mkdir report
-write -hierarchy -format verilog -output /home/devipriya/rvmyth_45nm/src/module/report/vsdbabysoc_gtlvl.v
-write_sdc -nosplit -version 2.0 /home/devipriya/rvmyth_45nm/src/module/report/vsdbabysoc.sdc
-report_area -hierarchy > /home/devipriya/rvmyth_45nm/src/module/report/vsdbabysoc.area
-report_timing > /home/devipriya/rvmyth_45nm/src/module/report/vsdbabysoc.timing
-report_power -hierarchy > /home/devipriya/rvmyth_45nm/src/module/report/vsdbabysoc.power
+write -hierarchy -format verilog -output /home/aakash/rvmyth_45nm/src/module/report/vsdbabysoc_gtlvl.v
+write_sdc -nosplit -version 2.0 /home/aakash/rvmyth_45nm/src/module/report/vsdbabysoc.sdc
+report_area -hierarchy > /home/aakash/rvmyth_45nm/src/module/report/vsdbabysoc.area
+report_timing > /home/aakash/rvmyth_45nm/src/module/report/vsdbabysoc.timing
+report_power -hierarchy > /home/aakash/rvmyth_45nm/src/module/report/vsdbabysoc.power
 
 gui_start
 ```
@@ -819,7 +846,6 @@ Here are the pictures showing the standard cells placed :
 ![Screenshot from 2022-09-16 00-49-43](https://user-images.githubusercontent.com/88897605/190491215-947ffd6a-fdc6-4d90-b41e-d01f19f7ca38.png)
 
 One such violation is shown below:
-
 ```
 Startpoint: core/CPU_imm_a2_reg[23] (rising edge-triggered flip-flop clocked by MYCLK)
   Endpoint: core/CPU_imm_a3_reg[23] (rising edge-triggered flip-flop clocked by MYCLK)
@@ -850,8 +876,7 @@ Startpoint: core/CPU_imm_a2_reg[23] (rising edge-triggered flip-flop clocked by 
   data arrival time                                         -0.3061
   --------------------------------------------------------------------------
   slack (VIOLATED)                                          -0.0282
-  ```
-  
+```  
   
 * Here the setup time is met but the hold time is not met and is violated. 
 * NOTE : The hold time has to be met if the IP has to go for tapeout or physical implementation.
