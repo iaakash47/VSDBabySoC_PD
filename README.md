@@ -252,7 +252,8 @@ set_max_delay 10 -from dac/OUT -to [get_ports OUT]
 ```
 ### Design Flow
 
-![icc design planning flow](https://user-images.githubusercontent.com/83152452/190413963-65903c08-7ec9-4411-ace0-0ae4febb736e.png)
+![22](https://user-images.githubusercontent.com/88897605/190555704-8eda471b-48bf-4177-a185-ae32027f6c8d.PNG)
+
 
 If the design contains black boxes or the netlist is dirty, use the read_mw_verilog command in place of import_designs. 
 Also include adding of power pads (VSS,VDD) and insertion of pad fillers.
@@ -287,16 +288,13 @@ consider the following factors:
 Partition your design with blocks of similar size. Small blocks should be grouped and large blocks should be divided when appropriate.
 
 • Function
-Partition your design using its functional units for verification and simulation purposes. Consider top-level connectivity and minimal block pin counts to avoid congestion and 
-timing issues.
+Partition your design using its functional units for verification and simulation purposes. Consider top-level connectivity and minimal block pin counts to avoid congestion and timing issues.
 
 • Floorplan style
-Different floorplan styles require different physical hierarchies to support them. An abutted floorplan style has no top-level logic and a channeled floorplan has either a 
-small or large amount of top-level logic.
+Different floorplan styles require different physical hierarchies to support them. An abutted floorplan style has no top-level logic and a channeled floorplan has either a small or large amount of top-level logic.
 
 • Common hierarchy with Design Compiler topographical mode
-To exchange SCANDEF information at the block level and the top level, the physical hierarchy used in Design Compiler topographical mode must also be used in the IC 
-Compiler II tool.
+To exchange SCANDEF information at the block level and the top level, the physical hierarchy used in Design Compiler topographical mode must also be used in the IC Compiler II tool.
 
 #### Deciding on the Physical Partitions
 
@@ -433,7 +431,8 @@ The list of keywords related to design planning for the -checks option is shown 
 
 Figure : Fast interactive analysis through multiple-levels of physical hierarchy and MIB
 
-![MIB](https://user-images.githubusercontent.com/83152452/190420541-354d7763-eac1-4885-bc54-3f9f0febb176.png)
+![standardcell](https://user-images.githubusercontent.com/88897605/190555175-0e6b1768-c817-432d-a321-52bd182abcdf.jpg)
+
 
 ```
 • dp_pre_macro_placement
@@ -453,7 +452,8 @@ Figure : Fast interactive analysis through multiple-levels of physical hierarchy
 
 Figure : Intelligent and accurate analysis for congestion and power
 
-![power analysis](https://user-images.githubusercontent.com/83152452/190421807-a267b4d8-987f-4a86-8fdf-230361ad0ba2.png)
+![power1](https://user-images.githubusercontent.com/88897605/190555296-78f61371-56ba-495b-b462-eff78c53d760.jpeg)
+
 
 ```
 • dp_pre_pin_placement
@@ -465,9 +465,10 @@ Figure : Intelligent and accurate analysis for congestion and power
 ◦ Runs the checks performed by the check_mib_for_pin_placement command
 ```
 
-Figure : Pipeline register placement enables superior QoR for designs with complex buses
+Figure : Sub Block Configuration
 
-![register placements](https://user-images.githubusercontent.com/83152452/190421795-d1c68df0-56e5-4aae-ac0a-7b1b28bb3bbb.png)
+![subblock](https://user-images.githubusercontent.com/88897605/190555403-fccedb05-2dda-41fc-8842-318b86942abe.jpeg)
+
 
 ```
 • dp_pre_push_down
